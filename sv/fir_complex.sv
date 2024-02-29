@@ -127,7 +127,7 @@ always_comb begin
     read_in_counter_c = read_in_counter;
     run_counter_c = run_counter;
 
-    generate if(DECIMATION > 1) begin: with_decimation
+    if(DECIMATION > 1) begin: with_decimation
         run_read_full_c = run_read_full;
         run_read_full_flag_c = run_read_full_flag;
 
@@ -135,7 +135,7 @@ always_comb begin
         x_real_buffer_run_c = x_real_buffer_run;
         x_imag_buffer_run_c = x_imag_buffer_run;
         end
-    endgenerate
+    
 
 
 
@@ -146,13 +146,12 @@ always_comb begin
             if (in_empty == 1'b0) begin
                 real_sum_c = 0;
                 imag_sum_c = 0;
-                generate if(DECIMATION > 1) begin: with_decimation
+                if(DECIMATION > 1) begin: with_decimation
                     run_read_full_c = 0;
                     run_read_full_flag_c = 0;
                     x_real_buffer_run_c = 0;
                     x_imag_buffer_run_c = 0;
                 end
-                endgenerate
 
                 in_rd_en = 1'b1;
                 // updateb newest sample at 0th index
@@ -189,7 +188,7 @@ always_comb begin
                 state_c = RUN;
             end
 
-            generate if(DECIMATION > 1) begin: with_decimation
+            if(DECIMATION > 1) begin: with_decimation
                 // fill buffer with size of DECIMATION
                 if (in_empty == 1'b0 && run_read_full_flag == 1'b0 ) begin
 
@@ -207,14 +206,13 @@ always_comb begin
                     
                 end
             end
-            endgenerate
 
 
         end
 
 
         WRITE: begin
-            generate if (DECIMATION = 1) begin: no_decimation
+            if (DECIMATION == 1) begin: no_decimation
                 if (!out_full) begin
                     out_wr_en = 1'b1;
                     real_out = real_sum;
@@ -227,11 +225,9 @@ always_comb begin
                     state_c = WRITE;
                 end
             end
-            
-            endgenerate
 
 
-            generate if(DECIMATION > 1) begin: with_decimation
+            if(DECIMATION > 1) begin: with_decimation
                 if (!out_full && run_read_full_flag == 1) begin
                     out_wr_en = 1'b1;
                     real_out = real_sum;
@@ -265,11 +261,10 @@ always_comb begin
                     state_c = WRITE;
                 end
             end
-            endgenerate
 
         end
 
-
+/*
         generate if(DECIMATION > 1) begin: with_decimation
             CONVERT: begin
                 // fill buffer with size of DECIMATION
@@ -302,9 +297,7 @@ always_comb begin
             end
         end
         endgenerate
-
-
-
+*/
     endcase
 
 
