@@ -70,9 +70,8 @@ logic [DATA_WIDTH-1:0] real_sum, imag_sum, real_sum_c, imag_sum_c;
 logic [5:0] run_read_full, run_read_full_c;
 logic run_read_full_flag, run_read_full_flag_c;
 
-logic [5:0] valid_postiton ,valid_shift_position;
 
-typedef enum logic[2:0] {READ, RUN, WRITE} state_types;
+typedef enum logic[2:0] {READ, RUN, WRITE, CONVERT} state_types;
 state_types state, state_c;
 
 
@@ -183,8 +182,8 @@ always_comb begin
                 // update newest sample at 0th index
                 x_real_buffer_run_c[0 : DECIMATION - 1] = {i_in, x_real_buffer_run[0: DECIMATION - 2] };
                 x_imag_buffer_run_c[0 : DECIMATION - 1] = {q_in, x_imag_buffer_run[0: DECIMATION - 2] };
-                run_read_full_c = run_read_full + 1;
 
+                run_read_full_c = (run_read_full + 1) % DECIMATION;
                 if (run_read_full == DECIMATION - 1) begin // finish reading DECIMATION samples
                     run_read_full_flag_c = 1;
                 end
@@ -203,9 +202,10 @@ always_comb begin
                 real_out = real_sum;
                 imag_out = imag_sum;
 
+                // shift for a complete buffer
                 x_real_buffer_c[0 : TAP_NUMBER - 1] = {x_real_buffer_run_c[0 : DECIMATION - 1], x_real_buffer[0 : TAP_NUMBER - DECIMATION - 1]};
                 x_imag_buffer_c[0 : TAP_NUMBER - 1] = {x_imag_buffer_run_c[0 : DECIMATION - 1], x_imag_buffer[0 : TAP_NUMBER - DECIMATION - 1]};
-
+                // empty buffer for next RUN
                 x_real_buffer_run_c = 0;
                 x_imag_buffer_run_c = 0;
 
@@ -215,41 +215,53 @@ always_comb begin
                 imag_sum_c = 0;
                 
                 state_c = RUN;
-            end /*else if(!out_full && run_read_full_flag == 0) begin
+            end else if(!out_full && run_read_full_flag == 0) begin
                 out_wr_en = 1'b1;
                 real_out = real_sum;
                 imag_out = imag_sum;
-                valid_postiton = run_read_full - 1;
-                valid_shift_position = TAP_NUMBER - run_read_full - 1;
+                // go back to fill the buffer
 
-                //x_real_buffer_c[0 : TAP_NUMBER - 1] = {x_real_buffer_run[0:valid_postiton], x_real_buffer[0: valid_shift_position]};
-                //x_imag_buffer_c[0 : TAP_NUMBER - 1] = {x_imag_buffer_run[0:valid_postiton], x_imag_buffer[0: valid_shift_position]};
+                state_c = CONVERT;
 
-              
-                
-
-                x_real_buffer_run_c = 0;
-                x_imag_buffer_run_c = 0;
-
-                read_in_counter_c = run_read_full;
-                state_c = READ;
-                genvar i;
-                generate for (i = 0; i < valid_position; i = i + 1) begin
-                    x_real_buffer_c[i] = x_real_buffer_run[i];
-                    x_imag_buffer_c[i] = x_imag_buffer_run[i];
-                end
-                for (i = 0; i < valid_shift_position; i = i + 1) begin
-                    x_real_buffer_c[i + valid_position] = x_real_buffer[i];
-                    x_imag_buffer_c[i + valid_position] = x_imag_buffer[i];
-                end
-                endgenerate
-            end*/ else begin
+            end else begin
                 out_wr_en = 1'b0;
                 real_out = 0;
                 imag_out = 0;
                 state_c = WRITE;
             end
 
+        end
+
+
+
+        CONVERT: begin
+            // fill buffer with size of DECIMATION
+            if (in_empty == 1'b0) begin
+
+                in_rd_en = 1'b1;
+                // update newest sample at 0th index
+                x_real_buffer_run_c[0 : DECIMATION - 1] = {i_in, x_real_buffer_run[0: DECIMATION - 2] };
+                x_imag_buffer_run_c[0 : DECIMATION - 1] = {q_in, x_imag_buffer_run[0: DECIMATION - 2] };
+                
+                run_read_full_c = (run_read_full + 1) % DECIMATION;
+                if (run_read_full == DECIMATION - 1) begin // finish reading DECIMATION samples
+                    x_real_buffer_c[0 : TAP_NUMBER - 1] = {x_real_buffer_run_c[0 : DECIMATION - 1], x_real_buffer[0 : TAP_NUMBER - DECIMATION - 1]};
+                    x_imag_buffer_c[0 : TAP_NUMBER - 1] = {x_imag_buffer_run_c[0 : DECIMATION - 1], x_imag_buffer[0 : TAP_NUMBER - DECIMATION - 1]};
+                    x_real_buffer_run_c = 0;
+                    x_imag_buffer_run_c = 0;
+
+                    run_read_full_flag_c = 0;
+
+                    real_sum_c = 0;
+                    imag_sum_c = 0;
+                    
+                    state_c = RUN;
+                end
+            end else begin
+                in_rd_en = 1'b0;
+                state_c = CONVERT;
+                
+            end
         end
 
 
