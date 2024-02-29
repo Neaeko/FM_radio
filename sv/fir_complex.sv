@@ -85,7 +85,7 @@ always_ff @(posedge clock or posedge reset) begin
         x_imag_buffer <= 0;
         run_counter <= 0;
         state <= READ;
-        if(DECIMATION > 1) begin: with_decimation
+        if(DECIMATION > 1) begin: with_decimation1
             x_real_buffer_run <= 0;
             x_imag_buffer_run <= 0;
 
@@ -106,7 +106,7 @@ always_ff @(posedge clock or posedge reset) begin
         run_counter <= run_counter_c;
         state <= state_c;
         
-        if(DECIMATION > 1) begin: with_decimation
+        if(DECIMATION > 1) begin: with_decimation2
             x_real_buffer_run <= x_real_buffer_run_c;
             x_imag_buffer_run <= x_imag_buffer_run_c;
 
@@ -134,7 +134,7 @@ always_comb begin
     read_in_counter_c = read_in_counter;
     run_counter_c = run_counter;
 
-    if(DECIMATION > 1) begin: with_decimation
+    if(DECIMATION > 1) begin: with_decimation3
         run_read_full_c = run_read_full;
         run_read_full_flag_c = run_read_full_flag;
 
@@ -153,8 +153,8 @@ always_comb begin
             if (in_empty == 1'b0) begin
                 real_sum_c = 0;
                 imag_sum_c = 0;
-                
-                if(DECIMATION > 1) begin: with_decimation
+
+                if(DECIMATION > 1) begin: with_decimation4
                     run_read_full_c = 0;
                     run_read_full_flag_c = 0;
                     x_real_buffer_run_c = 0;
@@ -196,7 +196,7 @@ always_comb begin
                 state_c = RUN;
             end
 
-            if(DECIMATION > 1) begin: with_decimation
+            if(DECIMATION > 1) begin: with_decimation5
                 // fill buffer with size of DECIMATION
                 if (in_empty == 1'b0 && run_read_full_flag == 1'b0 ) begin
 
@@ -235,7 +235,7 @@ always_comb begin
             end
 
 
-            if(DECIMATION > 1) begin: with_decimation
+            if(DECIMATION > 1) begin: with_decimation6
                 if (!out_full && run_read_full_flag == 1) begin
                     out_wr_en = 1'b1;
                     real_out = real_sum;
@@ -273,7 +273,7 @@ always_comb begin
         end
 
 /*
-        generate if(DECIMATION > 1) begin: with_decimation
+        generate if(DECIMATION > 1) begin: with_decimation7
             CONVERT: begin
                 // fill buffer with size of DECIMATION
                 if (in_empty == 1'b0) begin

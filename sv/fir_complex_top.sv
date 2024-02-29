@@ -15,12 +15,13 @@ module fir_complex_top(
 
 );
 
-
+logic i_full, q_full, i_empty, q_empty, i_rd_en, q_rd_en;
+logic real_empty, imag_empty;
 assign in_full = i_full || q_full;
 assign out_empty = real_empty && imag_empty;
 logic [31:0] real_out, imag_out, i_dout, q_dout;
 logic real_wr_en, imag_wr_en, real_full, imag_full;
-logic real_empty, imag_empty;
+
 
 
 fifo #(
