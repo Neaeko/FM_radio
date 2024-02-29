@@ -56,10 +56,10 @@ assign imag_wr_en = out_wr_en;
 //x_in(t):  9 8 7 6 5 4 3 2 1 0         
 //buffer(i):0 1 2 3 4 5 6 7 8 9
 //COEFF     9 8 7 6 5 4 3 2 1 0
-logic [0 : TAP_NUMBER - 1][DATA_WIDTH-1:0] x_real_buffer, x_real_buffer_c;
+logic [0 : TAP_NUMBER - 1][DATA_WIDTH-1:0] x_real_buffer, x_real_buffer_c /* synthesis syn_srlstyle="registers" */;
 logic [0 : DECIMATION - 1][DATA_WIDTH-1:0] x_real_buffer_run, x_real_buffer_run_c;
 
-logic [0 : TAP_NUMBER - 1][DATA_WIDTH-1:0] x_imag_buffer, x_imag_buffer_c;
+logic [0 : TAP_NUMBER - 1][DATA_WIDTH-1:0] x_imag_buffer, x_imag_buffer_c /* synthesis syn_srlstyle="registers" */;
 logic [0 : DECIMATION - 1][DATA_WIDTH-1:0] x_imag_buffer_run, x_imag_buffer_run_c;
 
 logic [5:0] read_in_counter, read_in_counter_c;
@@ -82,15 +82,19 @@ always_ff @(posedge clock or posedge reset) begin
         read_in_counter <= 0;
 
         x_real_buffer <= 0;
-        x_real_buffer_run <= 0;
         x_imag_buffer <= 0;
-        x_imag_buffer_run <= 0;
-
         run_counter <= 0;
-        run_read_full <= 0;
-
-        run_read_full_flag <= 0;
         state <= READ;
+        if(DECIMATION > 1) begin: with_decimation
+            x_real_buffer_run <= 0;
+            x_imag_buffer_run <= 0;
+
+
+            run_read_full <= 0;
+
+            run_read_full_flag <= 0;
+        end
+
 
     end else begin
         real_sum <= real_sum_c;
@@ -100,14 +104,17 @@ always_ff @(posedge clock or posedge reset) begin
         x_real_buffer <= x_real_buffer_c;
         x_imag_buffer <= x_imag_buffer_c;
         run_counter <= run_counter_c;
-
-        x_real_buffer_run <= x_real_buffer_run_c;
-        x_imag_buffer_run <= x_imag_buffer_run_c;
-
-        
-        run_read_full <= run_read_full_c;
-        run_read_full_flag <= run_read_full_flag_c;
         state <= state_c;
+        
+        if(DECIMATION > 1) begin: with_decimation
+            x_real_buffer_run <= x_real_buffer_run_c;
+            x_imag_buffer_run <= x_imag_buffer_run_c;
+
+            
+            run_read_full <= run_read_full_c;
+            run_read_full_flag <= run_read_full_flag_c;
+            
+        end
 
     end
 end
@@ -146,6 +153,7 @@ always_comb begin
             if (in_empty == 1'b0) begin
                 real_sum_c = 0;
                 imag_sum_c = 0;
+                
                 if(DECIMATION > 1) begin: with_decimation
                     run_read_full_c = 0;
                     run_read_full_flag_c = 0;
