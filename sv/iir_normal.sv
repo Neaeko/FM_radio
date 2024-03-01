@@ -1,4 +1,4 @@
-module iir#(
+module iir_normal#(
     parameter TAP_NUMBER = 2,
     // inverse filter coefficients with buffer to ensure correct convolution
     parameter DATA_WIDTH = 32,
@@ -42,6 +42,7 @@ logic [0 : TAP_NUMBER - 1][DATA_WIDTH-1:0] x_real_buffer, x_real_buffer_c /* syn
 logic [0 : TAP_NUMBER - 1][DATA_WIDTH-1:0] y_real_buffer, y_real_buffer_c /* synthesis syn_srlstyle="registers" */;
 
 logic [DATA_WIDTH-1:0] x_buffer, x_coeff, y_buffer, y_coeff;
+logic [DATA_WIDTH-1:0] dout_buffer, dout_buffer_c;
 
 logic [5:0] read_in_counter, read_in_counter_c;
 logic [5:0] run_counter, run_counter_c;
@@ -60,11 +61,14 @@ state_types state, state_c;
 always_ff @(posedge clock or posedge reset) begin
     if (reset) begin
         x_sum <= 0;
+        y_sum <= 0;
         read_in_counter <= 0;
 
-        x_real_buffer <= 0;;
+        x_real_buffer <= 0;
+        y_real_buffer <= 0;
         run_counter <= 0;
         state <= READ;
+        dout_buffer <= 0;
         
 
 
@@ -72,8 +76,10 @@ always_ff @(posedge clock or posedge reset) begin
         x_sum <= x_sum_c;
         y_sum <= y_sum_c;
         read_in_counter <= read_in_counter_c;
+        dout_buffer <= dout_buffer_c;
 
         x_real_buffer <= x_real_buffer_c;
+        y_real_buffer <= y_real_buffer_c;
         run_counter <= run_counter_c;
         state <= state_c;
         
@@ -92,7 +98,14 @@ always_comb begin
     x_sum_c = x_sum;
     y_sum_c = y_sum;
 
+    x_buffer = 0;
+    x_coeff = 0;
+    y_buffer = 0;
+    y_coeff = 0;
+    
+    dout_buffer_c = dout_buffer;
     x_real_buffer_c = x_real_buffer;
+    y_real_buffer_c = y_real_buffer;
 
     read_in_counter_c = read_in_counter;
     run_counter_c = run_counter;
@@ -109,7 +122,7 @@ always_comb begin
                 in_rd_en = 1'b1;
                 // updateb newest sample at 0th index
                 x_real_buffer_c[0 : TAP_NUMBER - 1] = {in_dout, x_real_buffer[0: TAP_NUMBER - 2] };
-                y_real_buffer_c[0 : TAP_NUMBER - 1] = {out_din, y_real_buffer[0: TAP_NUMBER - 2] };
+                y_real_buffer_c[0 : TAP_NUMBER - 1] = {dout_buffer, y_real_buffer[0: TAP_NUMBER - 2] };
 
                 
                 read_in_counter_c = (read_in_counter + 1) % DECIMATION;
@@ -191,13 +204,12 @@ always_comb begin
 
                     state_c = RUN;
 
-                else if (!out_full && in_empty == 1'b1) begin
+                end else if (!out_full && in_empty == 1'b1) begin
                     out_wr_en = 1'b1;
                     out_din = x_sum + y_sum;
+                    dout_buffer_c = out_din;
                     state_c = READ;
                 
-                end
-
                 end else begin
                     out_wr_en = 1'b0;
                     out_din = 0;
