@@ -88,3 +88,10 @@ function automatic logic [31:0] mul_frac10_32b (
 
     return result;
 endfunction
+
+
+
+
+
+
+
