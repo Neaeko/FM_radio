@@ -5,21 +5,20 @@ module iir_normal#(
     //Concole output:
     //IIR_X_COEFFS: 00B2 00B2 
     //IIR_Y_COEFFS: 0000 FFFFFD66 
-    parameter [TAP_NUMBER-1:0][DATA_WIDTH-1:0] CONV_X_COEFF = {
+    /*parameter [0:TAP_NUMBER-1][DATA_WIDTH-1:0] CONV_X_COEFF = {
 	            32'h000000B2, 32'h000000B2
     //static const int IIR_X_COEFFS[] = {QUANTIZE_F(W_PP / (1.0f + W_PP)), QUANTIZE_F(W_PP / (1.0f + W_PP))};
     },
-    parameter [TAP_NUMBER-1:0][DATA_WIDTH-1:0] CONV_Y_COEFF = {
+    parameter [0:TAP_NUMBER-1][DATA_WIDTH-1:0] CONV_Y_COEFF = {
                 32'h00000000, 32'hFFFFFFD6
 	//static const int IIR_Y_COEFFS[] = {QUANTIZE_F(0.0f), QUANTIZE_F((W_PP - 1.0f) / (W_PP + 1.0f))};
-    },
-    /*
+    },*/
     parameter int CONV_X_COEFF[0:TAP_NUMBER-1] = {
 	            178,178
     },
     parameter int CONV_Y_COEFF[TAP_NUMBER-1:0] = {
                 0,-666
-    },*/
+    },
     parameter DECIMATION = 1
 
 )(
