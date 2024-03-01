@@ -5,14 +5,21 @@ module iir_normal#(
     //Concole output:
     //IIR_X_COEFFS: 00B2 00B2 
     //IIR_Y_COEFFS: 0000 FFFFFD66 
-    parameter [0:TAP_NUMBER-1][DATA_WIDTH-1:0] CONV_X_COEFF = {
+    parameter [TAP_NUMBER-1:0][DATA_WIDTH-1:0] CONV_X_COEFF = {
 	            32'h000000B2, 32'h000000B2
     //static const int IIR_X_COEFFS[] = {QUANTIZE_F(W_PP / (1.0f + W_PP)), QUANTIZE_F(W_PP / (1.0f + W_PP))};
     },
-    parameter [0:TAP_NUMBER-1][DATA_WIDTH-1:0] CONV_Y_COEFF = {
+    parameter [TAP_NUMBER-1:0][DATA_WIDTH-1:0] CONV_Y_COEFF = {
                 32'h00000000, 32'hFFFFFFD6
 	//static const int IIR_Y_COEFFS[] = {QUANTIZE_F(0.0f), QUANTIZE_F((W_PP - 1.0f) / (W_PP + 1.0f))};
     },
+    /*
+    parameter int CONV_X_COEFF[0:TAP_NUMBER-1] = {
+	            178,178
+    },
+    parameter int CONV_Y_COEFF[TAP_NUMBER-1:0] = {
+                0,-666
+    },*/
     parameter DECIMATION = 1
 
 )(
@@ -171,8 +178,8 @@ always_comb begin
             endcase
             */
 
-            x_sum_c = x_sum + mul_frac10_32b(x_buffer, x_coeff);
-            y_sum_c = y_sum + mul_frac10_32b(y_buffer, y_coeff);
+            x_sum_c = x_sum + mul_frac10_32b(x_buffer , x_coeff);
+            y_sum_c = y_sum + mul_frac10_32b(y_buffer , y_coeff);
             // higher priority for calculation
             run_counter_c = (run_counter + 1) % TAP_NUMBER;
             
@@ -191,23 +198,24 @@ always_comb begin
             
                 if (!out_full && in_empty == 1'b0) begin
                     out_wr_en = 1'b1;
-                    out_din = x_sum + y_sum;
+                    out_din = y_real_buffer[TAP_NUMBER - 2];
 
                     // read from buffer
+		            dout_buffer_c = x_sum+y_sum;
                     x_sum_c = 0;
                     y_sum_c = 0;
 
                     in_rd_en = 1'b1;
                     // updateb newest sample at 0th index
                     x_real_buffer_c[0 : TAP_NUMBER - 1] = {in_dout, x_real_buffer[0: TAP_NUMBER - 2] };
-                    y_real_buffer_c[0 : TAP_NUMBER - 1] = {out_din, y_real_buffer[0: TAP_NUMBER - 2] };
+                    y_real_buffer_c[0 : TAP_NUMBER - 1] = {dout_buffer_c, y_real_buffer[0: TAP_NUMBER - 2] };
 
                     state_c = RUN;
 
                 end else if (!out_full && in_empty == 1'b1) begin
                     out_wr_en = 1'b1;
-                    out_din = x_sum + y_sum;
-                    dout_buffer_c = out_din;
+                    out_din = y_real_buffer[TAP_NUMBER - 2];
+                    dout_buffer_c = x_sum+y_sum;
                     state_c = READ;
                 
                 end else begin
