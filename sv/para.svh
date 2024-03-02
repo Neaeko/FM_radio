@@ -1,5 +1,15 @@
 package para;
 
+/*
+How to use:
+in .sv files, add the following line to include the file:
+
+`include "para.svh"
+import para::*;
+
+*/
+
+
 // FIR Complex: Channel low-pass complex filter coefficients @ 0kHz to 80kHz
 // diagram place: (1,1)
 // decimation = 1
