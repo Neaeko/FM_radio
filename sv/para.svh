@@ -1,3 +1,5 @@
+package para;
+
 // FIR Complex: Channel low-pass complex filter coefficients @ 0kHz to 80kHz
 // diagram place: (1,1)
 // decimation = 1
@@ -56,32 +58,32 @@ parameter [HP_COEFF_TAPS-1:0][31:0] HP_COEFFS =
 // FIR normal: L-R low-pass filter coefficients @ 15kHz
 // diagram place: (1,5)
 // decimation = 8
-parameter AUDIO_LMR_COEFF_TAPS = 32,
+parameter AUDIO_LMR_COEFF_TAPS = 32;
     // inverse filter coefficients with buffer to ensure correct convolution
 parameter [AUDIO_LMR_COEFF_TAPS-1:0][31:0] AUDIO_LMR_COEFFS = {
 	32'hfffffffd, 32'hfffffffa, 32'hfffffff4, 32'hffffffed, 32'hffffffe5, 32'hffffffdf, 32'hffffffe2, 32'hfffffff3, 
 	32'h00000015, 32'h0000004e, 32'h0000009b, 32'h000000f9, 32'h0000015d, 32'h000001be, 32'h0000020e, 32'h00000243, 
 	32'h00000243, 32'h0000020e, 32'h000001be, 32'h0000015d, 32'h000000f9, 32'h0000009b, 32'h0000004e, 32'h00000015, 
 	32'hfffffff3, 32'hffffffe2, 32'hffffffdf, 32'hffffffe5, 32'hffffffed, 32'hfffffff4, 32'hfffffffa, 32'hfffffffd
-},
+};
 
 
 // FIR normal: L+R low-pass filter coefficients @ 15kHz
 // diagram place: (2,5)
 // decimation = 8
-parameter AUDIO_LPR_COEFF_TAPS = 32,
+parameter AUDIO_LPR_COEFF_TAPS = 32;
     // inverse filter coefficients with buffer to ensure correct convolution
 parameter [AUDIO_LPR_COEFF_TAPS-1:0][31:0] AUDIO_LPR_COEFFS = {
 	32'hfffffffd, 32'hfffffffa, 32'hfffffff4, 32'hffffffed, 32'hffffffe5, 32'hffffffdf, 32'hffffffe2, 32'hfffffff3, 
 	32'h00000015, 32'h0000004e, 32'h0000009b, 32'h000000f9, 32'h0000015d, 32'h000001be, 32'h0000020e, 32'h00000243, 
 	32'h00000243, 32'h0000020e, 32'h000001be, 32'h0000015d, 32'h000000f9, 32'h0000009b, 32'h0000004e, 32'h00000015, 
 	32'hfffffff3, 32'hffffffe2, 32'hffffffdf, 32'hffffffe5, 32'hffffffed, 32'hfffffff4, 32'hfffffffa, 32'hfffffffd
-},
+};
 
 
 // Sine lookup table
 // diagram place: (1,2)
-parameter [31:0] sin_lut [1024]=
+parameter [0:1023][31:0] sin_lut =
 {
 	32'h00000000, 32'h00000006, 32'h0000000C, 32'h00000012, 32'h00000019, 32'h0000001F, 32'h00000025, 32'h0000002B, 
 	32'h00000032, 32'h00000038, 32'h0000003E, 32'h00000045, 32'h0000004B, 32'h00000051, 32'h00000057, 32'h0000005E, 
@@ -210,15 +212,17 @@ parameter [31:0] sin_lut [1024]=
 	32'hFFFFFF39, 32'hFFFFFF3F, 32'hFFFFFF45, 32'hFFFFFF4B, 32'hFFFFFF51, 32'hFFFFFF58, 32'hFFFFFF5E, 32'hFFFFFF64, 
 	32'hFFFFFF6A, 32'hFFFFFF70, 32'hFFFFFF77, 32'hFFFFFF7D, 32'hFFFFFF83, 32'hFFFFFF89, 32'hFFFFFF90, 32'hFFFFFF96, 
 	32'hFFFFFF9C, 32'hFFFFFFA2, 32'hFFFFFFA9, 32'hFFFFFFAF, 32'hFFFFFFB5, 32'hFFFFFFBB, 32'hFFFFFFC2, 32'hFFFFFFC8, 
-	32'hFFFFFFCE, 32'hFFFFFFD5, 32'hFFFFFFDB, 32'hFFFFFFE1, 32'hFFFFFFE7, 32'hFFFFFFEE, 32'hFFFFFFF4, 32'hFFFFFFFA, 
+	32'hFFFFFFCE, 32'hFFFFFFD5, 32'hFFFFFFDB, 32'hFFFFFFE1, 32'hFFFFFFE7, 32'hFFFFFFEE, 32'hFFFFFFF4, 32'hFFFFFFFA
 };
 
 // IIR Filter: Deemphasis Coefficients 
 // diagram place: (7,1) and (7,2)
 parameter IIR_COEFF_TAPS = 2;
-parameter int IIR_X_COEFF[0:TAP_NUMBER-1] = {
+parameter int IIR_X_COEFF[0:IIR_COEFF_TAPS-1] = {
 	            178,178
 };
-parameter int IIR_Y_COEFF[TAP_NUMBER-1:0] = {
+parameter int IIR_Y_COEFF[IIR_COEFF_TAPS-1:0] = {
                 0,-666
 };
+
+endpackage
