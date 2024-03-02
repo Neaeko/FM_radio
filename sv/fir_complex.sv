@@ -1,20 +1,20 @@
 module fir_complex#(
+    parameter TAP_NUMBER = 20,
     // inverse filter coefficients with buffer to ensure correct convolution
-    parameter [19:0][31:0] REAL_COEFF = {
+    parameter [TAP_NUMBER-1:0][31:0] REAL_COEFF = {
 	32'h00000001, 32'h00000008, 32'hfffffff3, 32'h00000009, 32'h0000000b, 32'hffffffd3, 32'h00000045, 32'hffffffd3, 
 	32'hffffffb1, 32'h00000257, 32'h00000257, 32'hffffffb1, 32'hffffffd3, 32'h00000045, 32'hffffffd3, 32'h0000000b, 
 	32'h00000009, 32'hfffffff3, 32'h00000008, 32'h00000001
     },
 
-    parameter [19:0][31:0] IMAG_COEFF = {
+    parameter [TAP_NUMBER-1:0][31:0] IMAG_COEFF = {
     32'h00000000, 32'h00000000, 32'h00000000, 32'h00000000, 32'h00000000, 32'h00000000, 32'h00000000, 32'h00000000, 
 	32'h00000000, 32'h00000000, 32'h00000000, 32'h00000000, 32'h00000000, 32'h00000000, 32'h00000000, 32'h00000000, 
 	32'h00000000, 32'h00000000, 32'h00000000, 32'h00000000
     },
 
     parameter DECIMATION = 1,
-    parameter DATA_WIDTH = 32,
-    parameter TAP_NUMBER = 20
+    parameter DATA_WIDTH = 32
 )(
     input  logic clock,
     input  logic reset,
