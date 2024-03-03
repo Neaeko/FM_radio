@@ -144,10 +144,10 @@ module divider #(
                 next_state = `s0;
             end
             default: begin
-                a_c = {DIVIDEND_WIDTH{'bx}};
-                b_c = {DIVIDEND_WIDTH{'bx}};
-                q_c = {DIVIDEND_WIDTH{'bx}};
-                r_c = {DIVISOR_WIDTH{'bx}};
+                a_c = 'x; //{DIVIDEND_WIDTH{'bx}};
+                b_c = 'x;//{DIVIDEND_WIDTH{'bx}};
+                q_c = 'x;//{DIVIDEND_WIDTH{'bx}};
+                r_c = 'x;//{DIVISOR_WIDTH{'bx}};
                 o_c = 'bx;
                 done_c = 'bx;
                 next_state = `s0;

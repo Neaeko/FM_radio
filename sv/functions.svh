@@ -1,4 +1,4 @@
-package functions;
+package func;
 
 
 // fixed point multiplication

@@ -228,11 +228,11 @@ parameter [0:1023][31:0] sin_lut =
 // IIR Filter: Deemphasis Coefficients 
 // diagram place: (1,7) and (2,7)
 parameter IIR_COEFF_TAPS = 2;
-parameter int IIR_X_COEFF[0:IIR_COEFF_TAPS-1] = {
+/*parameter int  IIR_X_COEFF [0:IIR_COEFF_TAPS-1]= {
 	            178,178
 };
-parameter int IIR_Y_COEFF[IIR_COEFF_TAPS-1:0] = {
+parameter int IIR_Y_COEFF [IIR_COEFF_TAPS-1:0]= {
                 0,-666
 };
-
+*/
 endpackage

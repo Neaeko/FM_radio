@@ -1,6 +1,6 @@
-`include "functions.svh"
+//`include "functions.svh"
 
-import functions::*;
+
 
 module demod #(
     parameter DATA_WIDTH= 32,
@@ -20,6 +20,10 @@ module demod #(
     output logic wr_en_demod
 
 );
+
+import func::*;
+
+
 int quad1;
 int quad3;
 int rl_pre,rl_pre_c;
@@ -88,6 +92,9 @@ always_ff @( posedge clk or posedge rst ) begin : blockName
 end
 
 always_comb begin
+    imm32 = 0;
+    i_abs = 0;
+    demod_out = 0;
     state_c=state;
     rd_en_img=1'b0;
     rd_en_rl=1'b0;

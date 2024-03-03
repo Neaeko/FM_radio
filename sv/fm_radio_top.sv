@@ -1,12 +1,6 @@
 `include "para.svh"
 `include "functions.svh"
 
-
-import para::*;
-import functions::*;
-
-
-
 module fm_radio_top(
     input   logic   clock,
     input   logic   reset,
@@ -26,6 +20,17 @@ module fm_radio_top(
 
 
 
+import para::*;
+import func::*;
+/*
+localparam int IIR_X_COEFF [0:IIR_COEFF_TAPS-1]= {
+	            178,178
+};
+localparam int IIR_Y_COEFF [IIR_COEFF_TAPS-1:0]= {
+                0,-666
+};
+*/
+
 
 
 // FIR Complex: input stage (1,1)
@@ -34,6 +39,8 @@ module fm_radio_top(
     logic full_input_i_fifo, full_input_q_fifo;
     logic empty_input_i_fifo, empty_input_q_fifo;
     logic [31:0] dout_input_i_fifo, dout_input_q_fifo;
+	 
+	 assign in_full = full_input_i_fifo || full_input_q_fifo;
 
     fifo #(
         .FIFO_BUFFER_SIZE(512),
@@ -157,7 +164,7 @@ module fm_radio_top(
         .empty_rl(empty_fir_cmplx_real_fifo),
 
         .img(dout_fir_cmplx_imag_fifo),
-        .empty_img(empty_fir_cmplx_imag_fifo)
+        .empty_img(empty_fir_cmplx_imag_fifo),
         .rd_en_img(rd_en_fir_cmplx_imag_fifo),
 
         .demod_out(din_demod_result),
@@ -505,7 +512,7 @@ multiplier_w_fifo mult(
         .DECIMATION(8),
         .DATA_WIDTH(32)
 
-    )fir_normal_lmr(
+    )fir_normal_lpr(
         .clock(clock),
         .reset(reset),
 
@@ -548,7 +555,7 @@ multiplier_w_fifo mult(
     logic dummy_empty, double_L_dummy_empty, double_R_dummy_empty;
     logic dummy_rd_en, double_L_dummy_rd_en, double_R_dummy_rd_en;
 // add: (L+R) + (L-R) = 2L  (1,6)
-    logic [31:0] doule_L;
+    logic [31:0] double_L;
     assign double_L = $signed(dout_fir_lpr_fifo) + $signed(dout_fir_lmr_fifo);
 
 
@@ -572,15 +579,15 @@ multiplier_w_fifo mult(
     iir_normal#(
         .TAP_NUMBER(IIR_COEFF_TAPS),
         .DATA_WIDTH(32),
-        .CONV_X_COEFF(IIR_X_COEFF),
-        .CONV_Y_COEFF(IIR_Y_COEFF),
+        //.CONV_X_COEFF(IIR_X_COEFF),
+        //.CONV_Y_COEFF(IIR_Y_COEFF),
         .DECIMATION(1)
 
     )IIR_left(
-        .clock(clock)
+        .clock(clock),
         .reset(reset),
 
-        .in_dout(doule_L),
+        .in_dout(double_L),
         .in_empty(double_L_dummy_empty),
         .in_rd_en(double_L_dummy_rd_en),
 
@@ -619,12 +626,12 @@ multiplier_w_fifo mult(
     iir_normal#(
         .TAP_NUMBER(IIR_COEFF_TAPS),
         .DATA_WIDTH(32),
-        .CONV_X_COEFF(IIR_X_COEFF),
-        .CONV_Y_COEFF(IIR_Y_COEFF),
+        //.CONV_X_COEFF(IIR_X_COEFF),
+        //.CONV_Y_COEFF(IIR_Y_COEFF),
         .DECIMATION(1)
 
     )IIR_right(
-        .clock(clock)
+        .clock(clock),
         .reset(reset),
 
         .in_dout(double_R),
