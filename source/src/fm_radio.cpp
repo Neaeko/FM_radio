@@ -136,6 +136,28 @@ void demodulate( int real, int imag, int *real_prev, int *imag_prev, const int g
     *imag_prev = imag;
 }
 
+int qarctan(int y, int x)
+{
+    const int quad1 = QUANTIZE_F(PI / 4.0);
+    const int quad3 = QUANTIZE_F(3.0 * PI / 4.0);
+
+    int abs_y = abs(y) + 1;
+    int angle = 0; 
+    int r = 0;
+
+    if ( x >= 0 ) 
+    {
+        r = QUANTIZE_I(x - abs_y) / (x + abs_y);
+        angle = quad1 - DEQUANTIZE(quad1 * r);
+    } 
+    else 
+    {
+        r = QUANTIZE_I(x + abs_y) / (abs_y - x);
+        angle = quad3 - DEQUANTIZE(quad1 * r);
+    }
+
+    return ((y < 0) ? -angle : angle);     // negate if in quad III or IV
+}
 void deemphasis_n( int *input, int *x, int *y, const int n_samples, int *output )
 {
     iir_n( input, n_samples, IIR_X_COEFFS, IIR_Y_COEFFS, x, y, IIR_COEFF_TAPS, 1, output );

@@ -4,7 +4,7 @@ module divider_tb;
 
 // Testbench parameters should match the divider module parameters
 parameter DIVIDEND_WIDTH = 32;
-parameter DIVISOR_WIDTH = 16;
+parameter DIVISOR_WIDTH = 32;
 
 // Testbench signals
 reg clk;
@@ -14,7 +14,7 @@ reg [DIVISOR_WIDTH-1:0] divisor;
 wire [DIVIDEND_WIDTH-1:0] quotient;
 wire [DIVISOR_WIDTH-1:0] remainder;
 wire overflow;
-
+wire done;
 // Instantiate the Unit Under Test (UUT)
 divider #(
     .DIVIDEND_WIDTH(DIVIDEND_WIDTH),
@@ -26,7 +26,8 @@ divider #(
     .divisor(divisor),
     .quotient(quotient),
     .remainder(remainder),
-    .overflow(overflow)
+    .overflow(overflow),
+    .done(done)
 );
 
 // Clock generation
