@@ -1,6 +1,5 @@
-//`include "functions.svh"
-
-
+`include "functions.svh"
+import functs::*;
 
 module demod #(
     parameter DATA_WIDTH= 32,
@@ -21,7 +20,7 @@ module demod #(
 
 );
 
-import func::*;
+
 
 
 int quad1;

@@ -1,5 +1,7 @@
 `include "para.svh"
-`include "functions.svh"
+//`include "functions.svh"
+import para::*;
+import functs::*;
 
 module fm_radio_top(
     input   logic   clock,
@@ -20,8 +22,7 @@ module fm_radio_top(
 
 
 
-import para::*;
-import func::*;
+
 /*
 localparam int IIR_X_COEFF [0:IIR_COEFF_TAPS-1]= {
 	            178,178

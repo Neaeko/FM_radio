@@ -1,4 +1,4 @@
-package func;
+package functs;
 
 
 // fixed point multiplication
@@ -27,7 +27,6 @@ endfunction
 
 
 endpackage
-
 
 
 
