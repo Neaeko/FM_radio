@@ -1,4 +1,7 @@
-module fir_complex_top(
+module fir_complex_top#(
+    parameter FIFO_BUFFER_SIZE_IN = 512,
+    parameter FIFO_BUFFER_SIZE_OUT = 256
+)(
     input  logic clock,
     input  logic reset,
 
@@ -25,7 +28,7 @@ logic real_wr_en, imag_wr_en, real_full, imag_full;
 
 
 fifo #(
-    .FIFO_BUFFER_SIZE(256),
+    .FIFO_BUFFER_SIZE(FIFO_BUFFER_SIZE_IN),
     .FIFO_DATA_WIDTH(32)
 ) i_in_fifo (
     .reset(reset),
@@ -41,7 +44,7 @@ fifo #(
 );
 
 fifo #(
-    .FIFO_BUFFER_SIZE(256),
+    .FIFO_BUFFER_SIZE(FIFO_BUFFER_SIZE_IN),
     .FIFO_DATA_WIDTH(32)
 ) q_in_fifo (
     .reset(reset),
@@ -82,9 +85,9 @@ fir_complex fir_cmplx(
 
 
 fifo #(
-    .FIFO_BUFFER_SIZE(256),
+    .FIFO_BUFFER_SIZE(FIFO_BUFFER_SIZE_OUT),
     .FIFO_DATA_WIDTH(32)
-) y_out_real_fifo (
+) out_real_fifo (
     .reset(reset),
     .wr_clk(clock),
     .wr_en(real_wr_en),
@@ -98,9 +101,9 @@ fifo #(
 );
 
 fifo #(
-    .FIFO_BUFFER_SIZE(256),
+    .FIFO_BUFFER_SIZE(FIFO_BUFFER_SIZE_OUT),
     .FIFO_DATA_WIDTH(32)
-) y_out_imag_fifo (
+) out_imag_fifo (
     .reset(reset),
     .wr_clk(clock),
     .wr_en(imag_wr_en),
