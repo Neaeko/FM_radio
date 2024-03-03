@@ -242,24 +242,7 @@ module fm_radio_top(
     logic [31:0] in_fir_normal_lmr;
     logic empty_fir_normal_lmr, in_rd_en_fir_normal_lmr;
 
-// MULTIPLIER, position (1,4)
-// data in from fir_bp_lmr
-multiplier_w_fifo mult(
-    .reset(reset),
-    .clock(clock),
 
-    .ina(dout_fir_bp_lmr_out_fifo),
-    .ina_empty(empty_fir_bp_lmr_out_fifo),
-    .ina_rd_en(rd_en_fir_bp_lmr_out_fifo),
-
-    .inb(),
-    .inb_empty(),
-    .inb_rd_en(),
-
-    .out(in_fir_normal_lmr),
-    .out_empty(empty_fir_normal_lmr),
-    .out_rd_en(in_rd_en_fir_normal_lmr)
-);
 
 
 /*
@@ -306,11 +289,69 @@ multiplier_w_fifo mult(
         .dout(dout_fir_pilot_bp_in_fifo),
         .empty(empty_fir_pilot_bp_in_fifo)
     );
+    
+    logic [31:0] din_fir_piolet_19;
+    logic wr_en_fir_piolet_19, full_fir_piolet_19;
+
+    fir_normal#(
+        .TAP_NUMBER(BP_PILOT_COEFF_TAPS),
+        // inverse filter coefficients with buffer to ensure correct convolution
+        .CONV_COEFF(BP_PILOT_COEFFS),
+        .DECIMATION(8),
+        .DATA_WIDTH(32)
+
+    )fir_piolet_19(
+        .clock(clock),
+        .reset(reset),
+
+        .in_dout(dout_fir_pilot_bp_in_fifo),
+        .in_empty(empty_fir_pilot_bp_in_fifo),
+        .in_rd_en(rd_en_fir_pilot_bp_in_fifo),
+
+
+        .out_din(din_fir_piolet_19),
+        .out_wr_en(wr_en_fir_piolet_19),
+        .out_full(full_fir_piolet_19)
+
+    );
+
+// Multiplication stage: (2,2)
+    logic [31:0] din_fir_piolet_19_mult;
+    assign din_fir_piolet_19_mult = mul_frac10_32b(din_fir_piolet_19, din_fir_piolet_19);
+
+
+
+
+// FIR stage
+// position: (2,3)
 
 
 
 
 
+
+
+
+
+
+// MULTIPLIER, position (1,4)
+// data in from fir_bp_lmr
+multiplier_w_fifo mult(
+    .reset(reset),
+    .clock(clock),
+
+    .ina(dout_fir_bp_lmr_out_fifo),
+    .ina_empty(empty_fir_bp_lmr_out_fifo),
+    .ina_rd_en(rd_en_fir_bp_lmr_out_fifo),
+
+    .inb(),
+    .inb_empty(),
+    .inb_rd_en(),
+
+    .out(in_fir_normal_lmr),
+    .out_empty(empty_fir_normal_lmr),
+    .out_rd_en(in_rd_en_fir_normal_lmr)
+);
 
 
 
@@ -375,7 +416,7 @@ multiplier_w_fifo mult(
     assign din_fir_lpr_in_fifo = din_demod_result;
     assign wr_en_fir_lpr_in_fifo = wr_en_demod;
 
-    assign full_demod = full_fir_lpr_in_fifo && full_fir_pilot_bp_in_fifo && full_fir_lmr_unfiltered_fifo;
+    assign full_demod = full_fir_lpr_in_fifo || full_fir_pilot_bp_in_fifo || full_fir_lmr_unfiltered_fifo;
 
     fifo #(
         .FIFO_BUFFER_SIZE(256),
