@@ -48,7 +48,7 @@ localparam int IIR_Y_COEFF [IIR_COEFF_TAPS-1:0]= {
     ) input_i_fifo(
         .reset(reset),
         .wr_clk(clock),
-        .wr_en(wr_en_input_i_fifo),
+        .wr_en(in_wr_en),
         .din(i_din),
         .full(full_input_i_fifo),
 
@@ -64,7 +64,7 @@ localparam int IIR_Y_COEFF [IIR_COEFF_TAPS-1:0]= {
     ) input_q_fifo(
         .reset(reset),
         .wr_clk(clock),
-        .wr_en(wr_en_input_q_fifo),
+        .wr_en(in_wr_en),
         .din(q_din),
         .full(full_input_q_fifo),
 
