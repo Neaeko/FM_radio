@@ -199,7 +199,6 @@ module fm_radio_top(
     logic full_fir_bp_lmr_out_fifo, empty_fir_bp_lmr_out_fifo;
 
 
-    // FIR_normal: First feedin from DEMODULATION stage
     fir_normal#(
         .TAP_NUMBER(BP_LMR_COEFF_TAPS),
         // inverse filter coefficients with buffer to ensure correct convolution
@@ -239,8 +238,7 @@ module fm_radio_top(
         .empty(empty_fir_bp_lmr_out_fifo)
     );
 
-    logic [31:0] in_fir_normal_lmr;
-    logic empty_fir_normal_lmr, in_rd_en_fir_normal_lmr;
+
 
 
 
@@ -297,7 +295,7 @@ module fm_radio_top(
         .TAP_NUMBER(BP_PILOT_COEFF_TAPS),
         // inverse filter coefficients with buffer to ensure correct convolution
         .CONV_COEFF(BP_PILOT_COEFFS),
-        .DECIMATION(8),
+        .DECIMATION(1),
         .DATA_WIDTH(32)
 
     )fir_piolet_19(
@@ -322,16 +320,81 @@ module fm_radio_top(
 
 
 
-// FIR stage
+// FIR stage: High pass filter @ 0Hz removes noise after pilot tone is squared
 // position: (2,3)
 
+    logic [31:0] din_fir_pilot_end_in_fifo, dout_fir_pilot_end_in_fifo;
+    logic wr_en_fir_pilot_end_in_fifo, rd_en_fir_pilot_end_in_fifo;
+    logic full_fir_pilot_end_in_fifo, empty_fir_pilot_end_in_fifo;
+
+    assign din_fir_pilot_end_in_fifo = din_fir_piolet_19_mult;
+    assign wr_en_fir_pilot_end_in_fifo = wr_en_fir_piolet_19;
+    assign  full_fir_piolet_19 = full_fir_pilot_end_in_fifo;
+    
+    fifo #(
+        .FIFO_BUFFER_SIZE(256),
+        .FIFO_DATA_WIDTH(32)
+        ) fir_pilot_end_in_fifo(
+        .reset(reset),
+        .wr_clk(clock),
+        .wr_en(wr_en_fir_pilot_end_in_fifo),
+        .din(din_fir_pilot_end_in_fifo),
+        .full(full_fir_pilot_end_in_fifo),
+
+        .rd_clk(clock),
+        .rd_en(rd_en_fir_pilot_end_in_fifo),
+        .dout(dout_fir_pilot_end_in_fifo),
+        .empty(empty_fir_pilot_end_in_fifo)
+    );
+
+    logic [31:0] din_fir_pilot_end_out_fifo, dout_fir_pilot_end_out_fifo;
+    logic wr_en_fir_pilot_end_out_fifo, rd_en_fir_pilot_end_out_fifo;
+    logic full_fir_pilot_end_out_fifo, empty_fir_pilot_end_out_fifo;
+
+
+    fir_normal#(
+        .TAP_NUMBER(HP_COEFF_TAPS),
+        // inverse filter coefficients with buffer to ensure correct convolution
+        .CONV_COEFF(HP_COEFFS),
+        .DECIMATION(1),
+        .DATA_WIDTH(32)
+
+    )fir_piolet_hp(
+        .clock(clock),
+        .reset(reset),
+
+        .in_dout(dout_fir_pilot_end_in_fifo),
+        .in_empty(empty_fir_pilot_end_in_fifo),
+        .in_rd_en(rd_en_fir_pilot_end_in_fifo),
+
+
+        .out_din(din_fir_pilot_end_out_fifo),
+        .out_wr_en(wr_en_fir_pilot_end_out_fifo),
+        .out_full(full_fir_pilot_end_out_fifo)
+
+    );
+
+    fifo #(
+        .FIFO_BUFFER_SIZE(256),
+        .FIFO_DATA_WIDTH(32)
+        ) fir_pilot_end_out_fifo(
+        .reset(reset),
+        .wr_clk(clock),
+        .wr_en(wr_en_fir_pilot_end_out_fifo),
+        .din(din_fir_pilot_end_out_fifo),
+        .full(full_fir_pilot_end_out_fifo),
+
+        .rd_clk(clock),
+        .rd_en(rd_en_fir_pilot_end_out_fifo),
+        .dout(dout_fir_pilot_end_out_fifo),
+        .empty(empty_fir_pilot_end_out_fifo)
+    );
 
 
 
 
-
-
-
+    logic [31:0] in_fir_normal_lmr;
+    logic empty_fir_normal_lmr, in_rd_en_fir_normal_lmr;
 
 
 // MULTIPLIER, position (1,4)
@@ -339,15 +402,15 @@ module fm_radio_top(
 multiplier_w_fifo mult(
     .reset(reset),
     .clock(clock),
-
+    // two output from fifo
     .ina(dout_fir_bp_lmr_out_fifo),
     .ina_empty(empty_fir_bp_lmr_out_fifo),
     .ina_rd_en(rd_en_fir_bp_lmr_out_fifo),
 
-    .inb(),
-    .inb_empty(),
-    .inb_rd_en(),
-
+    .inb(dout_fir_pilot_end_out_fifo),
+    .inb_empty(empty_fir_pilot_end_out_fifo),
+    .inb_rd_en(rd_en_fir_pilot_end_out_fifo),
+    // also expose outputs
     .out(in_fir_normal_lmr),
     .out_empty(empty_fir_normal_lmr),
     .out_rd_en(in_rd_en_fir_normal_lmr)
@@ -360,8 +423,6 @@ multiplier_w_fifo mult(
     logic [31:0] din_fir_lmr_fifo, dout_fir_lmr_fifo;
     logic wr_en_fir_lmr_fifo, rd_en_fir_lmr_fifo;
     logic full_fir_lmr_fifo, empty_fir_lmr_fifo;
-
-
 
 
     fir_normal#(
@@ -405,7 +466,9 @@ multiplier_w_fifo mult(
 
 
 
-// FIR stage: LPR (L+R)(2,5)
+// FIR stage: LPR (L+R)
+// position: (2,5)
+// third feedin from demodulation stage
     logic [31:0] din_fir_lpr_fifo, dout_fir_lpr_fifo;
     logic wr_en_fir_lpr_fifo, rd_en_fir_lpr_fifo;
     logic full_fir_lpr_fifo, empty_fir_lpr_fifo;
@@ -482,8 +545,8 @@ multiplier_w_fifo mult(
 
 
 // add and substages
-    logic double_L_dummy_empty, double_R_dummy_empty;
-    logic double_L_dummy_rd_en, double_R_dummy_rd_en;
+    logic dummy_empty, double_L_dummy_empty, double_R_dummy_empty;
+    logic dummy_rd_en, double_L_dummy_rd_en, double_R_dummy_rd_en;
 // add: (L+R) + (L-R) = 2L  (1,6)
     logic [31:0] doule_L;
     assign double_L = $signed(dout_fir_lpr_fifo) + $signed(dout_fir_lmr_fifo);
@@ -492,8 +555,13 @@ multiplier_w_fifo mult(
 // sub: (L+R) - (L-R) = 2R  (2,6)
     logic [31:0] double_R;
     assign double_R = $signed(dout_fir_lpr_fifo) - $signed(dout_fir_lmr_fifo);
+// set control signals
+    assign dummy_empty = empty_fir_lpr_fifo || empty_fir_lmr_fifo;
+    assign double_L_dummy_empty = dummy_empty;
+    assign double_R_dummy_empty = dummy_empty;
 
-
+    assign rd_en_fir_lmr_fifo = double_L_dummy_rd_en;
+    assign rd_en_fir_lpr_fifo = double_R_dummy_rd_en;
 
 
 // DEEMPHASIS stage: (1,7)
@@ -598,6 +666,12 @@ multiplier_w_fifo mult(
     logic full_gain_32_left_out_fifo, full_gain_32_right_out_fifo;
     logic empty_gain_32_left_out_fifo, empty_gain_32_right_out_fifo;
 
+    logic dummy_out_empty;
+    assign dummy_out_empty = empty_iir_left_fifo || empty_iir_right_fifo || full_gain_32_left_out_fifo || full_gain_32_right_out_fifo;
+    assign wr_en_gain_32_left_out_fifo = ~dummy_out_empty;
+    assign wr_en_gain_32_right_out_fifo = ~dummy_out_empty;
+    assign rd_en_iir_left_fifo = ~dummy_out_empty;
+    assign rd_en_iir_right_fifo = ~dummy_out_empty;
 
     gain_32_mono#(
         .GAIN(1)
