@@ -126,13 +126,13 @@ void read_IQ( unsigned char *IQ, int *I, int *Q, int samples )
 void demodulate_n( int *real, int *imag, int *real_prev, int *imag_prev, const int n_samples, const int gain, int *demod_out )
 {
     int i = 0;
-    FILE *out1 = fopen("1.2_demod_real.txt", "w");
-    FILE *out2 = fopen("1.2_demod_imag.txt", "w");
+    //FILE *out1 = fopen("1.2_demod_real.txt", "w");
+    FILE *out2 = fopen("1.2_demod_out.txt", "w");
     for ( i = 0; i < n_samples; i++ )
     {
         demodulate( real[i], imag[i], real_prev, imag_prev, gain, &demod_out[i] );
-        fprintf(out1, "%08X\n", real[i]);
-        fprintf(out2, "%08X\n", imag[i]);
+        //fprintf(out1, "%08X\n", real[i]);
+        fprintf(out2, "%08X\n", demod_out[i]);
     }
 }
 
