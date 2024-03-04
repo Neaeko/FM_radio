@@ -22,7 +22,7 @@ function automatic logic [31:0] mul_frac10_32b (
     input logic [31:0] inb
 );
     // Perform the multiplication
-    real product = $signed(ina) * $signed(inb);
+    longint product = $signed(ina) * $signed(inb);
 
     return int'($signed(product) / $signed(1 << 10));
 endfunction

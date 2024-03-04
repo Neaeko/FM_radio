@@ -89,6 +89,9 @@ always_ff @( posedge clk or posedge rst ) begin : blockName
 end
 
 always_comb begin
+	 i_abs = 0;
+	 imm32 = 0;
+	 demod_out = 0;
     state_c=state;
     rd_en_img=1'b0;
     rd_en_rl=1'b0;
@@ -106,10 +109,10 @@ always_comb begin
             if (empty_rl==1'b0 && empty_img==1'b0) begin
                 rd_en_img=1'b1;
                 rd_en_rl=1'b1;
-		r_c= DEQUANTIZE(rl_pre*rl) -  DEQUANTIZE((-img_pre)*img);
-		i_c= DEQUANTIZE(rl_pre*img) +  DEQUANTIZE((-img_pre)*rl);
-                //r_c=mul_frac10_32b(rl_pre,rl) - mul_frac10_32b((-img_pre),img);
-                //i_c=mul_frac10_32b(rl_pre,img) + mul_frac10_32b((-img_pre),rl);
+		        //r_c= DEQUANTIZE(rl_pre*rl) -  DEQUANTIZE((-img_pre)*img);
+		        //i_c= DEQUANTIZE(rl_pre*img) +  DEQUANTIZE((-img_pre)*rl);
+                r_c=mul_frac10_32b(rl_pre,rl) - mul_frac10_32b((-img_pre),img);
+                i_c=mul_frac10_32b(rl_pre,img) + mul_frac10_32b((-img_pre),rl);
                 state_c=RUN;
                 //store for next calcluate
                 rl_pre_c=rl;

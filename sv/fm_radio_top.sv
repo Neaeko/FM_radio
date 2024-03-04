@@ -1,5 +1,5 @@
 `include "para.svh"
-//`include "functions.svh"
+`include "functions.svh"
 import para::*;
 import functs::*;
 
