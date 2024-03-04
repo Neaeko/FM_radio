@@ -21,7 +21,7 @@
 #define AUDIO_DECIM     8
 #define AUDIO_RATE      (int)(QUAD_RATE / AUDIO_DECIM) // 32 kHz
 #define VOLUME_LEVEL    QUANTIZE_F(1.0f)
-#define SAMPLES         65536*4*3 // for 3 seconds
+#define SAMPLES         65536*4*2 // for 2 seconds
 #define AUDIO_SAMPLES   (int)(SAMPLES / AUDIO_DECIM)
 #define MAX_TAPS        32 
 #define MAX_DEV         55000.0f
