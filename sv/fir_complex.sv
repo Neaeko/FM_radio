@@ -1,3 +1,4 @@
+//`include "functions.svh"
 import functs::*;
 
 module fir_complex#(

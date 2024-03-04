@@ -1,3 +1,5 @@
+//`include "functions.svh"
+
 import functs::*;
 
 module iir_normal#(

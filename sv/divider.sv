@@ -1,6 +1,8 @@
+//`include "functions.svh"
 `define s0 2'b00
 `define s1 2'b01
 `define s2 2'b10
+import functs::*;
 
 module divider #(
     parameter DIVIDEND_WIDTH=32,
@@ -17,6 +19,7 @@ module divider #(
     output reg done
 );
 
+	
     reg [1:0] state, next_state;
     reg [DIVIDEND_WIDTH-1:0] a, a_c, b, b_c,q, q_c;
     reg [DIVISOR_WIDTH-1:0] r, r_c;
@@ -159,5 +162,3 @@ module divider #(
     assign overflow=o;
     assign done=done_o;
 endmodule
-
-

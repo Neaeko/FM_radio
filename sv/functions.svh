@@ -14,9 +14,33 @@ function automatic logic [31:0] mul_frac10_32b (
     logic [31:0] result = product >> 10;
 
     return result;
-endfunction*/
+endfunction
+*/
+
+function automatic logic [31:0] mul_frac10_32b (
+    input logic [31:0] ina,
+    input logic [31:0] inb
+);
+  // Define BITS and QUANT_VAL as local parameters with the same values as in the C++ macro
+  localparam int BITS = 10;
+  localparam int QUANT_VAL = 1 << BITS;
+  // Define RECIP_QUANT_VAL as a fixed-point value with 10 bits for the fractional part and 22 bits for the integer part
+  localparam bit [31:0] RECIP_QUANT_VAL = 32'h40000000 / QUANT_VAL;
+
+  // Perform the multiplication using fixed-point arithmetic
+  logic [63:0] product = $signed(ina) * $signed(inb);
+
+  // Dequantize the product by multiplying it with the reciprocal of QUANT_VAL
+  logic [31:0] dequantized_product = $round(product * RECIP_QUANT_VAL);
+
+  // Quantize the result by multiplying it with QUANT_VAL and rounding to the nearest integer
+  logic [31:0] quantized_result = $round(dequantized_product * QUANT_VAL);
+
+  return quantized_result;
+endfunction
 
 // very slow, for debug only
+/*
 function automatic logic [31:0] mul_frac10_32b (
     input logic [31:0] ina,
     input logic [31:0] inb
@@ -26,6 +50,7 @@ function automatic logic [31:0] mul_frac10_32b (
 
     return int'($signed(product) / $signed(1 << 10));
 endfunction
+*/
 
 // very slow, for debug only
 function logic[31:0] DEQUANTIZE; 

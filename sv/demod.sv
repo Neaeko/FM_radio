@@ -1,5 +1,4 @@
 //`include "functions.svh"
-
 import functs::*;
 
 module demod #(

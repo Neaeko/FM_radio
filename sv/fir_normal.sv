@@ -1,4 +1,6 @@
+//`include "functions.svh"
 import functs::*;
+
 
 module fir_normal#(
     parameter TAP_NUMBER = 32,
@@ -28,7 +30,7 @@ module fir_normal#(
     input  logic out_full
 
 );
-
+//`include "functions.svh"
 
 // shift buffer to store samples
 // invert the order of the samples to ensure correct convolution

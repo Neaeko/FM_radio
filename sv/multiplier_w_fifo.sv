@@ -1,3 +1,4 @@
+//`include "functions.svh"
 import functs::*;
 
 module multiplier_w_fifo(

@@ -1,7 +1,5 @@
 `include "para.svh"
 `include "functions.svh"
-import para::*;
-import functs::*;
 
 module fm_radio_top(
     input   logic   clock,
@@ -19,7 +17,8 @@ module fm_radio_top(
 
 );
 
-
+import para::*;
+import functs::*;
 
 
 
