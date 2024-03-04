@@ -102,7 +102,7 @@ void fm_radio_stereo(unsigned char *IQ, int *left_audio, int *right_audio)
     gain_n( left_deemph, AUDIO_SAMPLES, VOLUME_LEVEL, left_audio );
 
     // Right volume control
-    gain_n( right_deemph, AUDIO_SAMPLES, VOLUME_LEVEL, right_audio );
+    gain_n1( right_deemph, AUDIO_SAMPLES, VOLUME_LEVEL, right_audio );
 }
 
 
@@ -126,10 +126,13 @@ void read_IQ( unsigned char *IQ, int *I, int *Q, int samples )
 void demodulate_n( int *real, int *imag, int *real_prev, int *imag_prev, const int n_samples, const int gain, int *demod_out )
 {
     int i = 0;
-
+    FILE *out1 = fopen(" demod_real.txt", "w");
+    FILE *out2 = fopen(" demod_imag.txt", "w");
     for ( i = 0; i < n_samples; i++ )
     {
         demodulate( real[i], imag[i], real_prev, imag_prev, gain, &demod_out[i] );
+        fprintf(out1, "%08X\n", real[i]);
+        fprintf(out2, "%08X\n", imag[i]);
     }
 }
 
@@ -338,9 +341,23 @@ void sub_n( int *x_in, int *y_in, const int n_samples, int *output )
 void gain_n( int *input, const int n_samples, int gain, int *output )
 {
     int i = 0;
+    FILE *out = fopen("out_left.txt", "w");
     for ( i = 0; i < n_samples; i++ )
     {
         output[i] = DEQUANTIZE(input[i] * gain) << (14-BITS);
+        fprintf(out, "%08X\n", output[i]);
+    }
+}
+
+
+void gain_n1( int *input, const int n_samples, int gain, int *output )
+{
+    int i = 0;
+    FILE *out = fopen("out_right.txt", "w");
+    for ( i = 0; i < n_samples; i++ )
+    {
+        output[i] = DEQUANTIZE(input[i] * gain) << (14-BITS);
+        fprintf(out, "%08X\n", output[i]);
     }
 }
 

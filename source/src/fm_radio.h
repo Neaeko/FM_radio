@@ -10,8 +10,8 @@
 #define BITS            10
 #define QUANT_VAL       (1 << BITS)
 #define QUANTIZE_F(f)   (int)(((float)(f) * (float)QUANT_VAL))
-#define QUANTIZE_I(i)   (int)((int)(i) * (int)QUANT_VAL)
-#define DEQUANTIZE(i)   (int)((int)(i) / (int)QUANT_VAL)
+#define QUANTIZE_I(i)   (int)((int)(i) << 10 )
+#define DEQUANTIZE(i)   (int)((int)(i) >> 10)
 
 // constants
 #define PI              3.1415926535897932384626433832795f
@@ -54,6 +54,7 @@ void fir_cmplx( int *x_real_in, int *x_imag_in, const int *h_real, const int *h_
                 const int taps, const int decimation, int *y_real_out, int *y_imag_out );
 
 void gain_n( int *input, const int n_samples, int gain, int *output );
+void gain_n1( int *input, const int n_samples, int gain, int *output );
 
 int qarctan(int y, int x);
 
