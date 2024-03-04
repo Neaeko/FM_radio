@@ -5,24 +5,13 @@ module gain_32_mono#(
     output  logic [31:0] out_din
 );
 
+logic [63:0] buffer;
 
 always_comb begin
-    out_din = mul_frac10_32b(in_dout, GAIN) << (14-10);
+    buffer[63:0]  = $signed(in_dout) * $signed(GAIN);
+    out_din [31:0] = buffer << (14-10);
 end
 
 
-// fixed point multiplication
-function automatic logic [31:0] mul_frac10_32b (
-    input logic [31:0] ina,
-    input logic [31:0] inb
-);
-    // Perform the multiplication
-    logic [63:0] product = $signed(ina) * $signed(inb);
-
-    // Shift the product right by 10 bits to maintain the 10-bit fractional part
-    logic [31:0] result = product >> 10;
-
-    return result;
-endfunction
 
 endmodule

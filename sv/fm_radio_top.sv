@@ -676,8 +676,10 @@ multiplier_w_fifo mult(
 
     logic dummy_out_empty;
     assign dummy_out_empty = empty_iir_left_fifo || empty_iir_right_fifo || full_gain_32_left_out_fifo || full_gain_32_right_out_fifo;
-    assign wr_en_gain_32_left_out_fifo = ~dummy_out_empty;
-    assign wr_en_gain_32_right_out_fifo = ~dummy_out_empty;
+    // wr/rd control signals
+    assign wr_en_gain_32_left_out_fifo = ~empty_iir_left_fifo & ~full_gain_32_left_out_fifo;
+    assign wr_en_gain_32_right_out_fifo = ~empty_iir_right_fifo & ~full_gain_32_right_out_fifo;
+    
     assign rd_en_iir_left_fifo = ~dummy_out_empty;
     assign rd_en_iir_right_fifo = ~dummy_out_empty;
 

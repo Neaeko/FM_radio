@@ -1,4 +1,5 @@
-`include "functions.svh"
+//`include "functions.svh"
+
 import functs::*;
 
 module demod #(
@@ -19,10 +20,6 @@ module demod #(
     output logic wr_en_demod
 
 );
-
-
-
-
 int quad1;
 int quad3;
 int rl_pre,rl_pre_c;
@@ -56,6 +53,7 @@ endfunction
         .DIVISOR_WIDTH(DATA_WIDTH)
     ) my_divider (
         .clk(clk),
+	.reset(rst),
         .start(start),
         .dividend(dividend),
         .divisor(divisor),
@@ -91,9 +89,6 @@ always_ff @( posedge clk or posedge rst ) begin : blockName
 end
 
 always_comb begin
-    imm32 = 0;
-    i_abs = 0;
-    demod_out = 0;
     state_c=state;
     rd_en_img=1'b0;
     rd_en_rl=1'b0;
@@ -111,8 +106,10 @@ always_comb begin
             if (empty_rl==1'b0 && empty_img==1'b0) begin
                 rd_en_img=1'b1;
                 rd_en_rl=1'b1;
-                r_c=mul_frac10_32b(rl_pre,rl) - mul_frac10_32b((-img_pre),img);
-                i_c=mul_frac10_32b(rl_pre,img) + mul_frac10_32b((-img_pre),rl);
+		r_c= DEQUANTIZE(rl_pre*rl) -  DEQUANTIZE((-img_pre)*img);
+		i_c= DEQUANTIZE(rl_pre*img) +  DEQUANTIZE((-img_pre)*rl);
+                //r_c=mul_frac10_32b(rl_pre,rl) - mul_frac10_32b((-img_pre),img);
+                //i_c=mul_frac10_32b(rl_pre,img) + mul_frac10_32b((-img_pre),rl);
                 state_c=RUN;
                 //store for next calcluate
                 rl_pre_c=rl;

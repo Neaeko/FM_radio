@@ -2,6 +2,7 @@ package functs;
 
 
 // fixed point multiplication
+/*
 function automatic logic [31:0] mul_frac10_32b (
     input logic [31:0] ina,
     input logic [31:0] inb
@@ -13,8 +14,18 @@ function automatic logic [31:0] mul_frac10_32b (
     logic [31:0] result = product >> 10;
 
     return result;
-endfunction
+endfunction*/
 
+// very slow, for debug only
+function automatic logic [31:0] mul_frac10_32b (
+    input logic [31:0] ina,
+    input logic [31:0] inb
+);
+    // Perform the multiplication
+    real product = $signed(ina) * $signed(inb);
+
+    return int'($signed(product) / $signed(1 << 10));
+endfunction
 
 // very slow, for debug only
 function logic[31:0] DEQUANTIZE; 
