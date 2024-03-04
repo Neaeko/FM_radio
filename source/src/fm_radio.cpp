@@ -69,22 +69,22 @@ void fm_radio_stereo(unsigned char *IQ, int *left_audio, int *right_audio)
     fir_n( demod, SAMPLES, AUDIO_LPR_COEFFS, fir_lpr_x, AUDIO_LPR_COEFF_TAPS, AUDIO_DECIM, audio_lpr_filter ); 
 
     // L-R band-pass filter extracts the L-R channel from 23kHz to 53kHz
-    fir_n( demod, SAMPLES, BP_LMR_COEFFS, fir_bp_x, BP_LMR_COEFF_TAPS, 1, bp_lmr_filter ); 
+    fir_n1( demod, SAMPLES, BP_LMR_COEFFS, fir_bp_x, BP_LMR_COEFF_TAPS, 1, bp_lmr_filter ); 
 
     // Pilot band-pass filter extracts the 19kHz pilot tone
-    fir_n( demod, SAMPLES, BP_PILOT_COEFFS, fir_pilot_x, BP_PILOT_COEFF_TAPS, 1, bp_pilot_filter ); 
+    fir_n2( demod, SAMPLES, BP_PILOT_COEFFS, fir_pilot_x, BP_PILOT_COEFF_TAPS, 1, bp_pilot_filter ); 
 
     // square the pilot tone to get 38kHz
     multiply_n( bp_pilot_filter, bp_pilot_filter, SAMPLES, square );
 
     // high-pass filter removes the tone at 0Hz created after the pilot tone is squared
-    fir_n( square, SAMPLES, HP_COEFFS, fir_hp_x, HP_COEFF_TAPS, 1, hp_pilot_filter ); 
+    fir_n3( square, SAMPLES, HP_COEFFS, fir_hp_x, HP_COEFF_TAPS, 1, hp_pilot_filter ); 
 
     // demodulate the L-R channel from 38kHz to baseband
-    multiply_n( hp_pilot_filter, bp_lmr_filter, SAMPLES, multiply );
+    multiply_n1( hp_pilot_filter, bp_lmr_filter, SAMPLES, multiply );
 
     // L-R low-pass FIR filter - reduce sampling rate from 256 KHz to 32 KHz
-    fir_n( multiply, SAMPLES, AUDIO_LMR_COEFFS, fir_lmr_x, AUDIO_LMR_COEFF_TAPS, AUDIO_DECIM, audio_lmr_filter ); 
+    fir_n4( multiply, SAMPLES, AUDIO_LMR_COEFFS, fir_lmr_x, AUDIO_LMR_COEFF_TAPS, AUDIO_DECIM, audio_lmr_filter ); 
 
     // Left audio channel - (L+R) + (L-R) = 2L 
     add_n( audio_lpr_filter, audio_lmr_filter, AUDIO_SAMPLES, left );
@@ -96,7 +96,7 @@ void fm_radio_stereo(unsigned char *IQ, int *left_audio, int *right_audio)
     deemphasis_n( left, deemph_l_x, deemph_l_y, AUDIO_SAMPLES, left_deemph );
 
     // Right channel deemphasis
-    deemphasis_n( right, deemph_r_x, deemph_r_y, AUDIO_SAMPLES, right_deemph );
+    deemphasis_n1( right, deemph_r_x, deemph_r_y, AUDIO_SAMPLES, right_deemph );
 
     // Left volume control
     gain_n( left_deemph, AUDIO_SAMPLES, VOLUME_LEVEL, left_audio );
@@ -109,7 +109,7 @@ void fm_radio_stereo(unsigned char *IQ, int *left_audio, int *right_audio)
 void read_IQ( unsigned char *IQ, int *I, int *Q, int samples )
 {
     int i = 0;
-    FILE *out = fopen("read_IQ_output.txt", "w");
+    FILE *out = fopen("1.0_read_IQ_output.txt", "w");
     for ( i = 0; i < samples; i++ )
     {
         I[i] = QUANTIZE_I((short)(IQ[i*4+1] << 8) | (short)IQ[i*4+0]);
@@ -126,8 +126,8 @@ void read_IQ( unsigned char *IQ, int *I, int *Q, int samples )
 void demodulate_n( int *real, int *imag, int *real_prev, int *imag_prev, const int n_samples, const int gain, int *demod_out )
 {
     int i = 0;
-    FILE *out1 = fopen(" demod_real.txt", "w");
-    FILE *out2 = fopen(" demod_imag.txt", "w");
+    FILE *out1 = fopen("1.2_demod_real.txt", "w");
+    FILE *out2 = fopen("1.2_demod_imag.txt", "w");
     for ( i = 0; i < n_samples; i++ )
     {
         demodulate( real[i], imag[i], real_prev, imag_prev, gain, &demod_out[i] );
@@ -177,6 +177,11 @@ void deemphasis_n( int *input, int *x, int *y, const int n_samples, int *output 
     iir_n( input, n_samples, IIR_X_COEFFS, IIR_Y_COEFFS, x, y, IIR_COEFF_TAPS, 1, output );
 }
 
+void deemphasis_n1( int *input, int *x, int *y, const int n_samples, int *output )
+{
+    iir_n1( input, n_samples, IIR_X_COEFFS, IIR_Y_COEFFS, x, y, IIR_COEFF_TAPS, 1, output );
+}
+
 
 void iir_n( int *x_in, const int n_samples, const int *x_coeffs, const int *y_coeffs, int *x, int *y, const int taps, int decimation, int *y_out )
 {
@@ -184,11 +189,29 @@ void iir_n( int *x_in, const int n_samples, const int *x_coeffs, const int *y_co
     int j = 0;
 
     int n_elements = n_samples / decimation;
+    FILE *out = fopen("1.7_demph_left.txt", "w");
     for ( ; i < n_elements; i++, j+=decimation )
     {
         iir( &x_in[j], x_coeffs, y_coeffs, x, y, taps, decimation, &y_out[i] );
+        fprintf(out, "%08X\n", y_out[i]);
     }
 }
+
+void iir_n1( int *x_in, const int n_samples, const int *x_coeffs, const int *y_coeffs, int *x, int *y, const int taps, int decimation, int *y_out )
+{
+    int i = 0;
+    int j = 0;
+
+    int n_elements = n_samples / decimation;
+    FILE *out = fopen("2.7_demph_right.txt", "w");
+    for ( ; i < n_elements; i++, j+=decimation )
+    {
+        iir( &x_in[j], x_coeffs, y_coeffs, x, y, taps, decimation, &y_out[i] );
+        fprintf(out, "%08X\n", y_out[i]);
+    }
+}
+
+
 
 void iir( int *x_in, const int *x_coeffs, const int *y_coeffs, int *x, int *y, const int taps, const int decimation, int *y_out )
 {
@@ -231,11 +254,64 @@ void fir_n( int *x_in, const int n_samples, const int *coeff, int *x, const int 
 {
     int i = 0;
     int j = 0;
-
+    FILE *out = fopen("2.6_fir_lpr_lowpass.txt", "w");
     int n_elements = n_samples / decimation;
     for ( i = 0; i < n_elements; i++, j+=decimation )
     {
         fir( &x_in[j], coeff, x, taps, decimation, &y_out[i] );
+        fprintf(out, "%08X\n", y_out[i]);
+    }
+}
+
+void fir_n1( int *x_in, const int n_samples, const int *coeff, int *x, const int taps, const int decimation, int *y_out ) 
+{
+    int i = 0;
+    int j = 0;
+    FILE *out = fopen("1.3_fir_lmr_bandpass.txt", "w");
+    int n_elements = n_samples / decimation;
+    for ( i = 0; i < n_elements; i++, j+=decimation )
+    {
+        fir( &x_in[j], coeff, x, taps, decimation, &y_out[i] );
+        fprintf(out, "%08X\n", y_out[i]);
+    }
+}
+
+void fir_n2( int *x_in, const int n_samples, const int *coeff, int *x, const int taps, const int decimation, int *y_out ) 
+{
+    int i = 0;
+    int j = 0;
+    FILE *out = fopen("2.1_fir_pilot.txt", "w");
+    int n_elements = n_samples / decimation;
+    for ( i = 0; i < n_elements; i++, j+=decimation )
+    {
+        fir( &x_in[j], coeff, x, taps, decimation, &y_out[i] );
+        fprintf(out, "%08X\n", y_out[i]);
+    }
+}
+
+void fir_n3( int *x_in, const int n_samples, const int *coeff, int *x, const int taps, const int decimation, int *y_out ) 
+{
+    int i = 0;
+    int j = 0;
+    FILE *out = fopen("2.3_fir_pilot_hp.txt", "w");
+    int n_elements = n_samples / decimation;
+    for ( i = 0; i < n_elements; i++, j+=decimation )
+    {
+        fir( &x_in[j], coeff, x, taps, decimation, &y_out[i] );
+        fprintf(out, "%08X\n", y_out[i]);
+    }
+}
+
+void fir_n4( int *x_in, const int n_samples, const int *coeff, int *x, const int taps, const int decimation, int *y_out ) 
+{
+    int i = 0;
+    int j = 0;
+    FILE *out = fopen("1.5_fir_lmr_lowpass.txt", "w");
+    int n_elements = n_samples / decimation;
+    for ( i = 0; i < n_elements; i++, j+=decimation )
+    {
+        fir( &x_in[j], coeff, x, taps, decimation, &y_out[i] );
+        fprintf(out, "%08X\n", y_out[i]);
     }
 }
 
@@ -272,9 +348,13 @@ void fir_cmplx_n( int *x_real_in, int *x_imag_in, const int n_samples, const int
     int j = 0;
 
     int n_elements = n_samples / decimation;
+    FILE *out1 = fopen("1.1_fir_cmplx_real.txt", "w");
+    FILE *out2 = fopen("1.1_fir_cmplx_imag.txt", "w");
     for ( ; i < n_elements; i++, j+=decimation )
     {
         fir_cmplx( &x_real_in[j], &x_imag_in[j], h_real, h_imag, x_real, x_imag, taps, decimation, &y_real_out[i], &y_imag_out[i] );
+        fprintf(out1, "%08X\n", y_real_out[i]);
+        fprintf(out2, "%08X\n", y_imag_out[i]);
     }
 }
 
@@ -285,7 +365,7 @@ void fir_cmplx( int *x_real_in, int *x_imag_in, const int *h_real, const int *h_
     int j = 0;
     int y_real = 0;
     int y_imag = 0;
-    
+
     // shift x
     for ( j = taps-1; j > decimation-1; j-- ) 
     {
@@ -304,6 +384,8 @@ void fir_cmplx( int *x_real_in, int *x_imag_in, const int *h_real, const int *h_
     {
         y_real += DEQUANTIZE((h_real[i] * x_real[i]) - (h_imag[i] * x_imag[i]));
         y_imag += DEQUANTIZE((h_real[i] * x_imag[i]) - (h_imag[i] * x_real[i]));
+        
+
     }
 
     *y_real_out = y_real;
@@ -313,9 +395,22 @@ void fir_cmplx( int *x_real_in, int *x_imag_in, const int *h_real, const int *h_
 void multiply_n( int *x_in, int *y_in, const int n_samples, int *output )
 {
     int i = 0;
+    FILE *out = fopen("2.2_pilot_squared.txt", "w");
     for ( i = 0; i < n_samples; i++ )
     {
         output[i] = DEQUANTIZE( x_in[i] * y_in[i] );
+        fprintf(out, "%08X\n", output[i]);
+    }
+}
+
+void multiply_n1( int *x_in, int *y_in, const int n_samples, int *output )
+{
+    int i = 0;
+    FILE *out = fopen("1.4_left_mult.txt", "w");
+    for ( i = 0; i < n_samples; i++ )
+    {
+        output[i] = DEQUANTIZE( x_in[i] * y_in[i] );
+        fprintf(out, "%08X\n", output[i]);
     }
 }
 
@@ -323,25 +418,29 @@ void multiply_n( int *x_in, int *y_in, const int n_samples, int *output )
 void add_n( int *x_in, int *y_in, const int n_samples, int *output )
 {
     int i = 0;
+    FILE *out = fopen("1.6_left_add.txt", "w");
     for ( i = 0; i < n_samples; i++ )
     {
         output[i] = x_in[i] + y_in[i];
+        fprintf(out, "%08X\n", output[i]);
     }
 }
 
 void sub_n( int *x_in, int *y_in, const int n_samples, int *output )
 {
     int i = 0;
+    FILE *out = fopen("2.6_right_sub.txt", "w");
     for ( i = 0; i < n_samples; i++ )
     {
         output[i] = x_in[i] - y_in[i];
+        fprintf(out, "%08X\n", output[i]);
     }
 }
 
 void gain_n( int *input, const int n_samples, int gain, int *output )
 {
     int i = 0;
-    FILE *out = fopen("out_left.txt", "w");
+    FILE *out = fopen("1.8_out_left.txt", "w");
     for ( i = 0; i < n_samples; i++ )
     {
         output[i] = DEQUANTIZE(input[i] * gain) << (14-BITS);
@@ -353,7 +452,7 @@ void gain_n( int *input, const int n_samples, int gain, int *output )
 void gain_n1( int *input, const int n_samples, int gain, int *output )
 {
     int i = 0;
-    FILE *out = fopen("out_right.txt", "w");
+    FILE *out = fopen("2.8_out_right.txt", "w");
     for ( i = 0; i < n_samples; i++ )
     {
         output[i] = DEQUANTIZE(input[i] * gain) << (14-BITS);

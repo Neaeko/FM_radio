@@ -21,7 +21,7 @@
 #define AUDIO_DECIM     8
 #define AUDIO_RATE      (int)(QUAD_RATE / AUDIO_DECIM) // 32 kHz
 #define VOLUME_LEVEL    QUANTIZE_F(1.0f)
-#define SAMPLES         65536*4
+#define SAMPLES         65536*4*3 // for 3 seconds
 #define AUDIO_SAMPLES   (int)(SAMPLES / AUDIO_DECIM)
 #define MAX_TAPS        32 
 #define MAX_DEV         55000.0f
@@ -39,11 +39,20 @@ void demodulate( int real, int imag, int *real_prev, int *imag_prev, const int g
 
 void deemphasis_n( int *input, int *x, int *y, const int n_samples, int *output );
 
+void deemphasis_n1( int *input, int *x, int *y, const int n_samples, int *output );
+
 void iir_n( int *x_in, const int n_samples, const int *x_coeffs, const int *y_coeffs, int *x, int *y, const int taps, int decimation, int *y_out );
+
+void iir_n1( int *x_in, const int n_samples, const int *x_coeffs, const int *y_coeffs, int *x, int *y, const int taps, int decimation, int *y_out );
+
 
 void iir( int *x_in, const int *x_coeffs, const int *y_coeffs, int *x, int *y, const int taps, const int decimation, int *y_out );
 
 void fir_n( int *x_in, const int n_samples, const int *coeff, int *x, const int taps, const int decimation, int *y_out ); 
+void fir_n1( int *x_in, const int n_samples, const int *coeff, int *x, const int taps, const int decimation, int *y_out ); 
+void fir_n2( int *x_in, const int n_samples, const int *coeff, int *x, const int taps, const int decimation, int *y_out ); 
+void fir_n3( int *x_in, const int n_samples, const int *coeff, int *x, const int taps, const int decimation, int *y_out ); \
+void fir_n4( int *x_in, const int n_samples, const int *coeff, int *x, const int taps, const int decimation, int *y_out ); 
 
 void fir( int *x_in, const int *coeff, int *x, const int taps, const int decimation, int *y_out ); 
 
@@ -59,6 +68,7 @@ void gain_n1( int *input, const int n_samples, int gain, int *output );
 int qarctan(int y, int x);
 
 void multiply_n( int *x_in, int *y_in, const int n_samples, int *output );
+void multiply_n1( int *x_in, int *y_in, const int n_samples, int *output );
 
 void add_n( int *x_in, int *y_in, const int n_samples, int *output );
 
