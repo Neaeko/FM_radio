@@ -39,8 +39,8 @@ int main(int argc, char **argv)
     }    
     
     // run the FM receiver 
-    while( !feof(usrp_file) )
-    {
+    //while( !feof(usrp_file) )
+    //{
         // get I/Q from data file
         fread( IQ, sizeof(char), SAMPLES*4, usrp_file );
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 
         // write to audio output
         audio_tx( audio_fd, AUDIO_RATE, left_audio, right_audio, AUDIO_SAMPLES );
-    }
+    //}
 
     fclose( usrp_file );
     close( audio_fd );

@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <iomanip>
+#include <iostream>
+#include <fstream>
+
 #include "fm_radio.h"
 
 
@@ -105,11 +109,18 @@ void fm_radio_stereo(unsigned char *IQ, int *left_audio, int *right_audio)
 void read_IQ( unsigned char *IQ, int *I, int *Q, int samples )
 {
     int i = 0;
+    FILE *out = fopen("read_IQ_output.txt", "w");
     for ( i = 0; i < samples; i++ )
     {
         I[i] = QUANTIZE_I((short)(IQ[i*4+1] << 8) | (short)IQ[i*4+0]);
         Q[i] = QUANTIZE_I((short)(IQ[i*4+3] << 8) | (short)IQ[i*4+2]);
+        fprintf(out, "%08X%08X\n", I[i], Q[i]);
+
+
     }
+    //fclose(out);
+
+    
 }
 
 void demodulate_n( int *real, int *imag, int *real_prev, int *imag_prev, const int n_samples, const int gain, int *demod_out )
@@ -331,29 +342,6 @@ void gain_n( int *input, const int n_samples, int gain, int *output )
     {
         output[i] = DEQUANTIZE(input[i] * gain) << (14-BITS);
     }
-}
-
-int qarctan(int y, int x)
-{
-    const int quad1 = QUANTIZE_F(PI / 4.0);
-    const int quad3 = QUANTIZE_F(3.0 * PI / 4.0);
-
-    int abs_y = abs(y) + 1;
-    int angle = 0; 
-    int r = 0;
-
-    if ( x >= 0 ) 
-    {
-        r = QUANTIZE_I(x - abs_y) / (x + abs_y);
-        angle = quad1 - DEQUANTIZE(quad1 * r);
-    } 
-    else 
-    {
-        r = QUANTIZE_I(x + abs_y) / (abs_y - x);
-        angle = quad3 - DEQUANTIZE(quad1 * r);
-    }
-
-    return ((y < 0) ? -angle : angle);     // negate if in quad III or IV
 }
 
 
