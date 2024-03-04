@@ -1,0 +1,5 @@
+#!/bin/csh
+
+source /vol/eecs392/env/questasim.env
+
+vsim -do fm_radio_top_sim.do
