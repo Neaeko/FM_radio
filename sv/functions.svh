@@ -5,8 +5,10 @@ package functs;
 function logic[31:0] DEQUANTIZE; 
 input logic[31:0] i;
     begin
-	logic [31:0] result;
-        result =  ($signed(i) / $signed(1 << 10));
+	logic [31:0] result, round;
+        round = (i[31] == 1)? (1<<10)-1 :0;
+        //result =  ($signed(i) / $signed(1 << 10));
+        result =  ($signed(i + round) >>> 10);
 	
 	return result;
     end
@@ -22,7 +24,7 @@ function automatic logic [31:0] mul_frac10_32b (
     logic [63:0] product = $signed(ina) * $signed(inb);
 
     // Shift the product right by 10 bits to maintain the 10-bit fractional part
-    logic [31:0] result = DEQUANTIZE(products);
+    logic [31:0] result = DEQUANTIZE(product);
     
 
     return result;
