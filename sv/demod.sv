@@ -1,4 +1,4 @@
-//`include "functions.svh"
+`include "functions.svh"
 import functs::*;
 
 module demod #(
@@ -30,7 +30,7 @@ int remainder;
 int angle,angle_c;
 int imm32;
 logic done;
-typedef enum logic[2:0] {READ, RUN,DIVIDE, WRITE} state_types;
+typedef enum logic[2:0] {READ, RUN,DIVIDE, ANGLE,WRITE} state_types;
 state_types state, state_c;
 assign quad1=804;
 assign quad3=2412;
@@ -133,7 +133,11 @@ always_comb begin
         end
         DIVIDE: begin
             if (done==1'b1) begin
-                imm32=quad1*quotient>>>10;
+               state_c=ANGLE;
+            end
+        end
+        ANGLE: begin
+                imm32=DEQUANTIZE(quad1*quotient);
                 if(r>=0) begin
                     angle_c=quad1-imm32;
                 end
@@ -145,12 +149,11 @@ always_comb begin
                     angle_c=~angle_c+1;
                 end
                 state_c=WRITE;
-            end
         end
         WRITE: begin
             if (full_demod==1'b0) begin
                 wr_en_demod=1'b1;
-                demod_out=GAIN*angle>>>10;
+                demod_out=DEQUANTIZE(GAIN*angle);
                 state_c=READ;
             end
         end

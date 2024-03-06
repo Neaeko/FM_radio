@@ -2,7 +2,8 @@
 `define s0 2'b00
 `define s1 2'b01
 `define s2 2'b10
-import functs::*;
+`define s3 2'b11
+// import functs::*;
 
 module divider #(
     parameter DIVIDEND_WIDTH=32,
@@ -24,7 +25,7 @@ module divider #(
     reg [DIVIDEND_WIDTH-1:0] a, a_c, b, b_c,q, q_c;
     reg [DIVISOR_WIDTH-1:0] r, r_c;
     reg o, o_c, done_o, done_c;
-    int p;
+    int p,p_c;
     // int a_pos,b_pos;
     // wire found_a,found_b;
     reg sign;
@@ -33,8 +34,12 @@ module divider #(
         integer i;
         begin
             get_msb_pos = 0;
-            for (i = 0; i < $bits(val); i = i + 1) begin
-                if (val[i] == 1'b1) get_msb_pos = i;
+            for (i = 31; i >=0; i = i -1) begin
+                if (val[i] == 1'b1) begin
+                    get_msb_pos = i;  
+                    break; 
+                end 
+
             end
         end
     endfunction
@@ -75,6 +80,7 @@ module divider #(
             q <= 0;
             r <= 0;
             o <= 0;
+            p<='0;
             done_o <= 0;
             state <= `s0;
         end 
@@ -86,6 +92,7 @@ module divider #(
             o <= o_c;
             done_o <= done_c;
             state <= next_state;
+            p<=p_c;
         end
     end
 
@@ -97,10 +104,9 @@ module divider #(
         q_c = q;
         r_c = r;
         o_c = o;
+        p_c = p;
         done_c = done_o;
         next_state = state;
-
-        p = 0;
         sign = 0;
 
         case (state)
@@ -119,27 +125,34 @@ module divider #(
             `s1: begin
                 if (b == 0) begin
                     o_c = 1;
-                    next_state = `s2;
+                    next_state = `s3;
                 end else if (b == 1) begin
                     q_c = a;
                     a_c = 0;
-                    next_state = `s2;
+                    next_state = `s3;
                 end else if (a >= b) begin
-                    p = get_msb_pos(a) - get_msb_pos(b);
-                    if ((b<<p) > a) begin
-                        p=p-1;
-                    end
-                    q_c=$unsigned(q)+$unsigned(1<<p);
-                    a_c=$unsigned(a)-$unsigned(b<<p);
+                    p_c = get_msb_pos(a) - get_msb_pos(b);
+
                     // Implement get_msb_pos_rec logic or equivalent iterative approach
                     // p calculation and adjustment
                     // q_c and a_c adjustment
-                    next_state = `s1;
-                end else begin
                     next_state = `s2;
+                end else begin
+                    next_state = `s3;
                 end
             end
             `s2: begin
+                if ((b<<p) > a) begin
+                    p_c=p-1;
+                end
+                else begin
+                    p_c=p;
+                end
+                q_c=$unsigned(q)+$unsigned(1<<p_c);
+                a_c=$unsigned(a)-$unsigned(b<<p_c);
+                next_state=`s1;
+            end
+            `s3: begin
                 sign = dividend[DIVIDEND_WIDTH-1] ^ divisor[DIVISOR_WIDTH-1];
                 q_c = sign ? ~q + 1'b1 : q;
                 r_c = dividend[DIVIDEND_WIDTH-1] ? ~a + 1'b1 : a;
@@ -154,6 +167,7 @@ module divider #(
                 o_c = 'bx;
                 done_c = 'bx;
                 next_state = `s0;
+                p_c=p;
             end
         endcase
     end
